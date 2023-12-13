@@ -12,7 +12,26 @@
 #include "pch.h"
 #pragma hdrstop
 
+#include "shlobj_core.h"
+
+#include <filesystem>           // std::filesystem
+
 using namespace std;
+
+//------------------------------------------------------------
+
+/// 既知のフォルダーの完全パスを取得
+filesystem::path GetKnownFolderPath(REFKNOWNFOLDERID rfid, DWORD dwFlags = 0, HANDLE hToken = 0)
+{
+    PWSTR pszPath = 0;
+    if (SHGetKnownFolderPath(rfid, dwFlags, hToken, &pszPath) != S_OK) {
+        ::CoTaskMemFree(pszPath);
+        throw runtime_error("SHGetKnownFolderPath failure.");
+    }
+    wstring result{pszPath};
+    ::CoTaskMemFree(pszPath);
+    return result;
+}
 
 //------------------------------------------------------------
 
@@ -20,7 +39,8 @@ int main(int /*argc*/, char** /*argv*/)
 {
     try {
         locale::global(locale{locale{}, "", locale::ctype});
-        string wavPath ="C:\\WINDOWS\\Media\\Windows Ding.wav";
+        auto p = GetKnownFolderPath(FOLDERID_Windows) / "Media" / "Windows Ding.wav";
+        string wavPath = p.string();
         int timeOut = 1000;
         ostringstream cmdLine;
         cmdLine << "mshta \"about:playing... "

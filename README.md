@@ -14,3 +14,7 @@ mshta.exe を使用。
   -T [ --timeout ] arg (=1000) タイムアウト[ミリ秒]
   -L [ --list ]                ファイルリスト表示
 </pre>
+
+例:
+
+    playwav "Windows Ding.wav" ding.wav

@@ -72,7 +72,7 @@ void process(filesystem::path wavPath, const boost::program_options::variables_m
         wavPath = GetKnownFolderPath(FOLDERID_Windows) / "Media" / wavPath;
     if (vm.count("verbose"))
         cout << "INFO: wavPath: " << wavPath << endl;
-    int timeOut = 1000;
+    int timeOut = vm["timeout"].as<int>();
     ostringstream cmdLine;
     cmdLine << "mshta \"about:playing... "
             << "<OBJECT CLASSID='CLSID:22D6F312-B0F6-11D0-94AB-0080C74C7E95' WIDTH=1 HEIGHT=1>"
@@ -104,6 +104,7 @@ int main(int argc, char** argv)
             ("help,H", "ヘルプ")
             ("version,V", "バージョン表示")
             ("verbose,v", "冗長表示")
+            ("timeout,T", po::value<int>()->default_value(1000), "タイムアウト[ミリ秒]")
              ;
         po::options_description opt("オプション");
         opt.add(visible).add(hidden);

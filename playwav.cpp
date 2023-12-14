@@ -22,6 +22,11 @@ using namespace std;
 
 //------------------------------------------------------------
 
+/// バージョン
+const char* str_version = "0.00";
+
+//------------------------------------------------------------
+
 /// 既知のフォルダーの完全パスを取得
 filesystem::path GetKnownFolderPath(REFKNOWNFOLDERID rfid, DWORD dwFlags = 0, HANDLE hToken = 0)
 {
@@ -46,12 +51,10 @@ void version()
 #else        
     cout << " x86";
 #endif
-#if defined(NDEBUG)
-    cout << " Release";
-#else
+#if !defined(NDEBUG)
     cout << " Debug";
 #endif
-    cout << " Version";
+    cout << " Version " << str_version << endl;
 }
 
 /// ヘルプメッセージ出力

@@ -66,12 +66,21 @@ void help(const boost::program_options::options_description& opt)
 }
 
 /// wav ファイルを再生
-void process(filesystem::path wavPath, const boost::program_options::variables_map& vm)
+/// \result true = ファイルが存在し再生した
+///         false = ファイルが存在しないなどのエラー
+bool process(filesystem::path wavPath, const boost::program_options::variables_map& vm, bool last)
 {
     if (wavPath.is_relative())
         wavPath = GetKnownFolderPath(FOLDERID_Windows) / "Media" / wavPath;
+    if (!filesystem::exists(wavPath)) {
+        if (last)
+            cerr << "ERROR: File " << wavPath << " not found." << endl;
+        else if (vm.count("verbose"))
+            cerr << "WARN: File " << wavPath << " not found." << endl;
+        return false;
+    }
     if (vm.count("verbose"))
-        cout << "INFO: wavPath: " << wavPath << endl;
+        cout << "INFO: Play File: " << wavPath << endl;
     int timeOut = vm["timeout"].as<int>();
     ostringstream cmdLine;
     cmdLine << "mshta \"about:playing... "
@@ -86,6 +95,7 @@ void process(filesystem::path wavPath, const boost::program_options::variables_m
             << "  setTimeout(function(){window.close()}," << timeOut << ");"
             << "</SCRIPT>\"";
     system(cmdLine.str().c_str());
+    return true;
 }
 
 int main(int argc, char** argv)
@@ -121,12 +131,15 @@ int main(int argc, char** argv)
         }
         //
         if (vm.count("wav-file")) {
+            size_t count = vm["wav-file"].as<vector<string>>().size();
+            size_t i = 0;
             for (const auto& str : vm["wav-file"].as<vector<string>>()) {
-                process(str, vm);
+                if (process(str, vm, ++i == count))
+                    break;
             }
         }
         else {
-            process("Ding.wav", vm);
+            process("Ding.wav", vm, true);
         }
     }
     catch (const exception& x) {

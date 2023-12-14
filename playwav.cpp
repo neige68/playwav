@@ -65,13 +65,86 @@ void help(const boost::program_options::options_description& opt)
     cout << oss.str() << endl;
 }
 
+/// Windows Media フォルダパス
+filesystem::path GetWindowsMediaPath()
+{
+    return GetKnownFolderPath(FOLDERID_Windows) / "Media";
+}
+
+/// 文字列を区切り文字 c で分解
+vector<string> split(const string& str, char c)
+{
+    vector<string> result;
+    size_t start = 0;
+    for (;;) {
+        size_t pos = str.find(c, start);
+        if (pos == string::npos) break;
+        result.push_back(str.substr(start, pos - 1));
+        start = pos + 1;
+    }
+    return result;
+}
+
+/// ターミナルの桁数
+int GetTerminalCols()
+{
+    CONSOLE_SCREEN_BUFFER_INFO ConsoleScreenBufferInfo;
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &ConsoleScreenBufferInfo))
+        return ConsoleScreenBufferInfo.dwSize.X;
+    else {
+        // Emacs の shell ではエラー: ハンドルが無効です。
+#pragma warning(disable:4996) // getenv の結果は string にすぐコピーするので安全だと思う
+        if (string(getenv("TERM")) == "emacs") { // Windows の Emacs の shell では環境変数 TERM=emacs になっている
+            string cap = getenv("TERMCAP"); // "emacs:co#115:tc=unknown:" のように起動時の幅が記憶されている
+            vector<string> scap = split(cap, ':');
+            auto iscap = find_if(scap.begin(), scap.end(),
+                                 [] (const string& s) { return s.substr(0, 3) == "co#"; });
+            if (iscap != scap.end())
+                return atoi(iscap->substr(3).c_str());
+        }
+#pragma warning(default:4996)
+    }
+    return 80;
+}
+
+/// リスト表示
+void show_list()
+{
+    vector<string> v;
+    size_t max_width = 0;
+    for (const auto& ent : filesystem::directory_iterator(GetWindowsMediaPath())) {
+        if (ent.is_regular_file()) {
+            auto ext = ent.path().extension();
+            if (ext == ".wav" || ext == ".mid") {
+                string fname = ent.path().filename().string();
+                v.push_back(fname);
+                if (max_width < fname.size())
+                    max_width = fname.size();
+            }
+        }
+    }
+    int c = 1 + (GetTerminalCols() - max_width) / (max_width + 2);
+    int r = (v.size() + c - 1) / c;
+    for (int ir = 0; ir < r; ++ir) {
+        for (int ic = 0; ic < c; ++ic) {
+            size_t s = ir + ic * r;
+            if (s < v.size()) {
+                cout << v[s];
+                if (ic + 1 < c)
+                    cout << string(max_width + 2 - v[s].size(), ' ');
+            }
+        }
+        cout << endl;
+    }
+}
+
 /// wav ファイルを再生
 /// \result true = ファイルが存在し再生した
 ///         false = ファイルが存在しないなどのエラー
 bool process(filesystem::path wavPath, const boost::program_options::variables_map& vm, bool last)
 {
     if (wavPath.is_relative())
-        wavPath = GetKnownFolderPath(FOLDERID_Windows) / "Media" / wavPath;
+        wavPath = GetWindowsMediaPath() / wavPath;
     if (!filesystem::exists(wavPath)) {
         if (last)
             cerr << "ERROR: File " << wavPath << " not found." << endl;
@@ -115,6 +188,7 @@ int main(int argc, char** argv)
             ("version,V", "バージョン表示")
             ("verbose,v", "冗長表示")
             ("timeout,T", po::value<int>()->default_value(1000), "タイムアウト[ミリ秒]")
+            ("list,L", "ファイルリスト表示")
              ;
         po::options_description opt("オプション");
         opt.add(visible).add(hidden);
@@ -127,6 +201,10 @@ int main(int argc, char** argv)
         }
         if (vm.count("version")) {
             version();
+            return 0;
+        }
+        if (vm.count("list")) {
+            show_list();
             return 0;
         }
         //

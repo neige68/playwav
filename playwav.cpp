@@ -59,7 +59,8 @@ void help(const boost::program_options::options_description& opt)
 {
     version();
     cout << endl;
-    cout << "書式: playwav {オプション} wavファイル ..." << endl << endl;
+    cout << "書式: playwav {オプション} ファイル ..." << endl << endl;
+    cout << "ファイルは複数指定しても存在する最初のファイルのみを再生します" << endl << endl;
     ostringstream oss;
     oss << opt;
     cout << oss.str() << endl;

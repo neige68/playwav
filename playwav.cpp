@@ -12,7 +12,8 @@
 #include "pch.h"
 #pragma hdrstop
 
-#include "shlobj_core.h"
+#include <Mmsystem.h>           // PlaySound
+#include <shlobj_core.h>        // SHGetKnownFolderPath
 
 #include <boost/program_options.hpp> // boost::program_options
 
@@ -158,21 +159,12 @@ bool process(filesystem::path wavPath, const boost::program_options::variables_m
     }
     if (vm.count("verbose"))
         cout << "INFO: Play File: " << wavPath << endl;
+    //
     int timeOut = vm["timeout"].as<int>();
-    ostringstream cmdLine;
-    cmdLine << "mshta \"about:playing... "
-            << "<OBJECT CLASSID='CLSID:22D6F312-B0F6-11D0-94AB-0080C74C7E95' WIDTH=1 HEIGHT=1>"
-            << "  <PARAM NAME='src' VALUE='" << wavPath.string() << "'>"
-            << "  <PARAM NAME='PlayCount' VALUE='1'>"
-            << "  <PARAM NAME='AutoStart' VALUE='true'>"
-            << "</OBJECT>"
-            << "<SCRIPT>"
-            << "  window.resizeTo(10,10);"
-            << "  window.moveTo(-32000,-32000);"
-            << "  setTimeout(function(){window.close()}," << timeOut << ");"
-            << "</SCRIPT>\"";
-    system(cmdLine.str().c_str());
-    return true;
+    bool result = PlaySound(wavPath.string().c_str(), NULL, SND_FILENAME | SND_ASYNC);
+    Sleep(timeOut);
+    PlaySound(NULL, NULL, SND_FILENAME | SND_ASYNC);
+    return result;
 }
 
 int main(int argc, char** argv)

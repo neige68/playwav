@@ -48,4 +48,7 @@ add_executable(playwav playwav.cpp pch.cpp)
 # プリコンパイルヘッダを生成
 set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Yc\"pch.h\"")
 
+# ライブラリ追加
+target_link_libraries(playwav winmm)
+
 # end of <CMakeLists.txt>

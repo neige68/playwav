@@ -1,7 +1,5 @@
 # Windows コマンドラインプログラムで wav の再生
 
-mshta.exe を使用。
-
 <pre>
 書式: playwav {オプション} ファイル ...
 

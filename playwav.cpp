@@ -63,8 +63,9 @@ void help(const boost::program_options::options_description& opt)
 {
     version();
     cout << endl;
-    cout << "書式: playwav {オプション} ファイル ..." << endl << endl;
-    cout << "ファイルは複数指定しても存在する最初のファイルのみを再生します" << endl << endl;
+    cout << "書式: playwav {オプション} wavファイル ..." << endl << endl;
+    cout << "wavファイルは絶対パス指定がなければ Windows Meida フォルダを使用します" << endl << endl;
+    cout << "wavファイルは複数指定しても存在する最初のファイルのみを再生します" << endl << endl;
     ostringstream oss;
     oss << opt;
     cout << oss.str() << endl;

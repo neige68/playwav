@@ -120,7 +120,7 @@ void show_list()
     for (const auto& ent : filesystem::directory_iterator(GetWindowsMediaPath())) {
         if (ent.is_regular_file()) {
             auto ext = ent.path().extension();
-            if (ext == ".wav" || ext == ".mid") {
+            if (ext == ".wav") {
                 string fname = ent.path().filename().string();
                 v.push_back(fname);
                 if (max_width < fname.size())
